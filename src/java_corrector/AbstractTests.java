@@ -1,5 +1,6 @@
 package java_corrector;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -19,6 +20,14 @@ public abstract class AbstractTests<T> {
     private Stats stats;
 
     protected AbstractTests(Class<T> tClass, String path, String packagePath) {
+        Runtime rt = Runtime.getRuntime();
+        try {
+            Process p = rt.exec("javac " + path + "\\*.java");
+            p.waitFor(300, TimeUnit.SECONDS);
+        } catch (IOException | InterruptedException e) {
+            System.out.println("Could not compile the .java files: " + e);
+            System.exit(1);
+        }
         this.cLoader = new CLoader<>(tClass, path, packagePath);
         this.tests = getTests(this.getClass());
     }
