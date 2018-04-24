@@ -5,12 +5,31 @@ import sys
 from functools import wraps
 import time
 import signal
-import inspect
 
-__all__ = ['run_tests', 'test', 'timer']
+__all__ = ['run_tests', 'test', 'timer', 'TestException']
 
 
-def run_tests(path, entity_name, test):
+class _Stats:
+    def __init__(self, file_name):
+        self.file_name = file_name
+        self.errors = {}
+        self.timings = {}
+
+    def add_err(self, msg, fn):
+        self.errors[fn] = msg
+
+    def add_timing(self, timing, fn):
+        self.timings[fn] = timing
+
+    def report(self):
+        print self.file_name, len(self.errors), self.errors, self.timings
+
+
+s = _Stats(None)
+
+
+def run_tests(path, entity_name, tests):
+    global s
     files = _get_py_files(path)
     sys.path.append(os.path.abspath(path))
     for f in files:
@@ -21,7 +40,7 @@ def run_tests(path, entity_name, test):
             print file_name + ' does not contain the expected interface'
             continue
         s = _Stats(file_name)
-        test(locals()[entity_name], s)
+        tests(locals()[entity_name])
         s.report()
 
 
@@ -34,13 +53,14 @@ def test(timeout=10):
         def wrapper(*args, **kwargs):
             signal.signal(signal.SIGALRM, _handle_timeout)
             signal.alarm(timeout)
-            s = args[1]
             try:
-                f(args[0], s)
+                f(args[0])
             except _TimeoutError:
                 s.add_err('Timed out after ' + str(timeout) + 's', fn=f.__name__)
+            except TestException as e:
+                s.add_err(e.message, f.__name__)
             except Exception as e:
-                s.add_err(e, fn=f.__name__)
+                s.add_err(e, f.__name__)
             finally:
                 signal.alarm(0)
 
@@ -52,28 +72,16 @@ def test(timeout=10):
 def timer(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        s = args[1]
         start = time.time()
-        f(args[0], s)
+        f(args[0])
         s.add_timing(time.time() - start, fn=f.__name__)
 
     return wrapper
 
 
-class _Stats:
-    def __init__(self, file_name):
-        self.file_name = file_name
-        self.errors = {}
-        self.timings = {}
-
-    def add_err(self, msg, fn=None):
-        self.errors[fn if fn else _get_func_name()] = msg
-
-    def add_timing(self, timing, fn=None):
-        self.timings[fn if fn else _get_func_name()] = timing
-
-    def report(self):
-        print self.file_name, len(self.errors), self.errors, self.timings
+class TestException(Exception):
+    def __init__(self, msg):
+        super(TestException, self).__init__(msg)
 
 
 class _TimeoutError(Exception):
@@ -82,7 +90,3 @@ class _TimeoutError(Exception):
 
 def _get_py_files(path):
     return [f for f in listdir(path) if isfile(join(path, f)) and f.endswith('.py')]
-
-
-def _get_func_name():
-    return inspect.stack()[2][3]

@@ -5,56 +5,56 @@ import sys
 function_name = 'find_minimum_loss'
 
 
-def all_tests(f, s):
-    empty_test(f, s)
-    one_element_test(f, s)
-    standard_test(f, s)
-    no_solution_test(f, s)
-    negative_test(f, s)
-    duplicate_test(f, s)
-    timing_test(f, s)
+def all_tests(f):
+    empty_test(f)
+    one_element_test(f)
+    standard_test(f)
+    no_solution_test(f)
+    negative_test(f)
+    duplicate_test(f)
+    timing_test(f)
 
 
 @test()
-def empty_test(f, s):
+def empty_test(f):
     check = f([])
     if check != 0:
-        s.add_err('Min loss with an empty array should be 0, got ' + str(check))
+        raise TestException('Min loss with an empty array should be 0, got ' + str(check))
 
 
 @test()
-def one_element_test(f, s):
+def one_element_test(f):
     check = f([1])
     if check != 0:
-        s.add_err('Min loss with an array of length 1 should be 0, got ' + str(check))
+        raise TestException('Min loss with an array of length 1 should be 0, got ' + str(check))
 
 
 @test()
-def standard_test(f, s):
+def standard_test(f):
     check = f([10, 5, 7, 2, 3, 6])
     if check != 1:
-        s.add_err('Min loss of [10, 5, 7, 2, 3, 6] should be 1, got ' + str(check))
+        raise TestException('Min loss of [10, 5, 7, 2, 3, 6] should be 1, got ' + str(check))
 
 
 @test()
-def no_solution_test(f, s):
+def no_solution_test(f):
     check = f([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     if check != 0:
-        s.add_err('Min loss of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] should be 0, got ' + str(check))
+        raise TestException('Min loss of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] should be 0, got ' + str(check))
 
 
 @test()
-def negative_test(f, s):
+def negative_test(f):
     check = f([15, 13, -4, 4, 6, 7, -5, 8])
     if check != 1:
-        s.add_err('Min loss of [15, 13, -4, 4, 6, 7, -5, 8] should be 1, got ' + str(check))
+        raise TestException('Min loss of [15, 13, -4, 4, 6, 7, -5, 8] should be 1, got ' + str(check))
 
 
 @test()
-def duplicate_test(f, s):
+def duplicate_test(f):
     check = f([8, 4, 2, 9, 5, 3, 8, 10, 0])
     if check != 1:
-        s.add_err('Min loss of [8, 4, 2, 9, 5, 3, 8, 10, 0] should be 1, got ' + str(check))
+        raise TestException('Min loss of [8, 4, 2, 9, 5, 3, 8, 10, 0] should be 1, got ' + str(check))
 
 
 a = []
@@ -64,7 +64,7 @@ for _i in xrange(100000):
 
 @test()
 @timer
-def timing_test(f, s):
+def timing_test(f):
     f(a)
 
 
